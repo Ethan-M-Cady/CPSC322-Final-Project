@@ -158,52 +158,25 @@ class MyDecisionTreeClassifier:
     """
 
     def __init__(self):
-        """Initializer for MyDecisionTreeClassifier.
-        """
         self.X_train = None
         self.y_train = None
         self.tree = None
 
     def fit(self, X_train, y_train):
-        """Fits a decision tree classifier to X_train and y_train using the TDIDT
-        (top down induction of decision tree) algorithm.
-        Args:
-            X_train(list of list of obj): The list of training instances (samples).
-                The shape of X_train is (n_train_samples, n_features)
-            y_train(list of obj): The target y values (parallel to X_train)
-                The shape of y_train is n_train_samples
-        Notes:
-            Since TDIDT is an eager learning algorithm, this method builds a decision tree model
-                from the training data.
-            Build a decision tree using the nested list representation described in class.
-            On a majority vote tie, choose first attribute value based on attribute domain ordering.
-            Store the tree in the tree attribute.
-            Use attribute indexes to construct default attribute names (e.g. "att0", "att1", ...).
-        """
         self.X_train = X_train
         self.y_train = y_train
-        train = [X_train[i] + [y_train[i]] for i in range(len(X_train))]
-        available_attributes = list(range(len(train[0])-1))
+        train = [X_train[i] + [y_train[i]] for i in range(0, len(X_train))]
+        available_attributes = list(range(0, len(train[0])-1))
         self.tree = myutils.tdidt(train, available_attributes, X_train)
-        # print(self.tree)
 
     def predict(self, X_test):
-        """Makes predictions for test instances in X_test.
-        Args:
-            X_test(list of list of obj): The list of testing samples
-                The shape of X_test is (n_test_samples, n_features)
-        Returns:
-            y_predicted(list of obj): The predicted target y values (parallel to X_test)
-        """
         header = []
-        for header_len in range(len(X_test[0])):
-            header.append("att" + str(header_len))
-
+        for item in range(0, len(X_test[0])):
+            header.append("att" + str(item))
         y_predicted = []
         for instance in X_test:
             predicted = myutils.tdidt_predict(header, self.tree, instance)
             y_predicted.append(predicted)
-
         return y_predicted
 
 
@@ -220,7 +193,6 @@ class MyAssociationRuleMiner:
         Terminology: instance = sample = row and attribute = feature = column
     """
 
-    # def __init__(self, minsup=0.25, minconf=0.8):
     def __init__(self, minsup=0.25, minconf=0.8):
         """Initializer for MyAssociationRuleMiner.
         Args:

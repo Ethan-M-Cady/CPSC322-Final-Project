@@ -319,21 +319,9 @@ def test_decision_tree_classifier_fit():
 
     # attribute values are now sorted by index
     tree_interview = \
-        ['Attribute', 'att0',
-         ['Value', 'Senior',
-          ['Attribute', 'att2',
-           ['Value', 'no',
-            ['Leaf', 'False', 3, 5]],
-           ['Value', 'yes',
-            ['Leaf', 'True', 2, 5]]]],
-         ['Value', 'Mid',
-          ['Leaf', 'True', 4, 14]],
-         ['Value', 'Junior',
-          ['Attribute', 'att3',
-           ['Value', 'no',
-            ['Leaf', 'True', 3, 5]],
-           ['Value', 'yes',
-            ['Leaf', 'False', 2, 5]]]]]
+        ['Attribute', 'att0', ['Value', 'Senior', ['Attribute', 'att2', ['Value', 'no', ['Leaf', 'False', 3, 5]], ['Value', 'yes', ['Leaf', 'True', 2, 5]]]], ['Value', 'Mid', ['Leaf', 'True', 4, 14]], ['Value', 'Junior', ['Attribute', 'att3', ['Value', 'no',
+                                                                                                                                                                                                                                                    ['Leaf', 'True', 3, 5]], ['Value', 'yes', ['Leaf', 'False', 2, 5]]]]]
+
     assert tree_interview == decision_tree.tree
 
     X_train_iphone = [
@@ -359,25 +347,8 @@ def test_decision_tree_classifier_fit():
     decision_tree.fit(X_train_iphone, y_train_iphone)
 
     tree_iphone = \
-        ['Attribute', 'att0',
-            ['Value', '1',
-                ['Attribute', 'att1',
-                    ['Value', '3',
-                        ['Leaf', 'no', 2, 5]],
-                    ['Value', '2',
-                        ['Attribute', 'att2',
-                            ['Value', 'fair',
-                                ['Leaf', 'no', 1, 2]],
-                            ['Value', 'excellent',
-                                ['Leaf', 'yes', 1, 2]]]],
-                    ['Value', '1',
-                        ['Leaf', 'yes', 1, 5]]]],
-            ['Value', '2',
-                ['Attribute', 'att2',
-                    ['Value', 'fair',
-                        ['Leaf', 'yes', 6, 10]],
-                    ['Value', 'excellent',
-                        ['Leaf', 'no', 4, 10]]]]]
+        ['Attribute', 'att0', ['Value', '1', ['Attribute', 'att1', ['Value', '3', ['Leaf', 'no', 2, 5]], ['Value', '2',
+                                                                                                          ['Attribute', 'att2', ['Value', 'fair', ['Leaf', 'no', 1, 2]], ['Value', 'excellent', ['Leaf', 'yes', 1, 2]]]], ['Value', '1', ['Leaf', 'yes', 1, 5]]]], ['Value', '2', ['Attribute', 'att2', ['Value', 'fair', ['Leaf', 'yes', 6, 10]], ['Value', 'excellent', ['Leaf', 'no', 4, 10]]]]]
     assert tree_iphone == decision_tree.tree
 
 

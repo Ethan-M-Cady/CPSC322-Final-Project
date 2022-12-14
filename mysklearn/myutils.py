@@ -117,56 +117,54 @@ def x_train_helper(X_train, data_array):
 ####################################################################
 # DECISION TREE CLASSIFIER FUNCTIONS #
 ####################################################################
-def select_attribute(instances, attributes):
-    select_min_entropy = []
+def select_attribute(table, attributes):  # check
+    min_entropy = []
     for i in attributes:
-        attribute_types = []
-        # find all attribute instance types
-        for row in instances:
-            if row[i] not in attribute_types:
-                attribute_types.append(row[i])
-        attribute_instances = [[] for _ in attribute_types]
-        # find amount for each attribute
-        for row in instances:
-            index_att = attribute_types.index(row[i])
-            attribute_instances[index_att].append(1)
-
+        attribute_labels = []
+        for row in table:
+            if row[i] not in attribute_labels:
+                attribute_labels.append(row[i])
+        attribute_rows = []
+        for item in attribute_labels:
+            attribute_rows.append([])
+        for row in table:
+            index_att = attribute_labels.index(row[i])
+            attribute_rows[index_att].append(1)
         class_types = []
-        for values in instances:
+        for values in table:
             if values[-1] not in class_types:
                 class_types.append(values[-1])
-        class_type_check = [[[] for _ in class_types] for _ in attribute_types]
-
-        for j, _ in enumerate(instances):
-            class_type_check[attribute_types.index(
-                instances[j][i])][class_types.index(instances[j][-1])].append(1)
-
-        enew = 0
-        for entropy_att, _ in enumerate(class_type_check):
+        class_type_search = [[[] for _ in class_types]
+                             for _ in attribute_labels]
+        for j, _ in enumerate(table):
+            class_type_search[attribute_labels.index(
+                table[j][i])][class_types.index(table[j][-1])].append(1)
+        E_new = 0
+        for entropy_attribute, _ in enumerate(class_type_search):
             entropy = 0
-            for class_entropy in range(len(class_type_check[entropy_att])):
+            for class_entropy in range(len(class_type_search[entropy_attribute])):
                 val_instance = sum(
-                    class_type_check[entropy_att][class_entropy])
-                einstance = val_instance / \
-                    sum(attribute_instances[entropy_att])
-                if einstance != 0:
-                    entropy += -1 * einstance * math.log(einstance, 2)
-            enew += entropy * \
-                sum(attribute_instances[entropy_att]) / len(instances)
-        select_min_entropy.append(enew)
+                    class_type_search[entropy_attribute][class_entropy])
+                entropy = val_instance / \
+                    sum(attribute_rows[entropy_attribute])
+                if entropy != 0:
+                    entropy += -1 * entropy * math.log(entropy, 2)
+            E_new += entropy * \
+                sum(attribute_rows[entropy_attribute]) / len(table)
+        min_entropy.append(E_new)
 
-    min_index = select_min_entropy.index(min(select_min_entropy))
+    min_index = min_entropy.index(min(min_entropy))
     return attributes[min_index]
 
 
 def partition_instances(instances, split_attribute, X_train):
     attribute_domains = {}
-    for l, _ in enumerate(X_train[0]):
-        no_repeats = []
+    for i, _ in enumerate(X_train[0]):
+        unique_vals = []
         for row in X_train:
-            if str(row[l]) not in no_repeats:
-                no_repeats.append(str(row[l]))
-        attribute_domains[l] = no_repeats
+            if str(row[i]) not in unique_vals:
+                unique_vals.append(str(row[i]))
+        attribute_domains[i] = unique_vals
     partitions = {}
     att_index = split_attribute
     att_domain = attribute_domains[att_index]
@@ -186,7 +184,7 @@ def all_same_class(instances):
     return True
 
 
-def majority_vote(att_partition, current_instances, value_subtree, tree):
+def majority_vote(att_partition, current_instances, value_subtree, tree):  # still check
     classifiers = []
     for value_class in att_partition:
         if value_class[-1] not in classifiers:
@@ -196,10 +194,10 @@ def majority_vote(att_partition, current_instances, value_subtree, tree):
     for value_class in att_partition:
         find_majority[classifiers.index(value_class[-1])].append(1)
 
-    max = 0
+    max_val = 0
     for count in find_majority:
         total_sum = sum(count)
-        if total_sum > max:
+        if total_sum > max_val:
             majority_rule = classifiers[find_majority.index(count)]
 
     leaf_node = ["Leaf", majority_rule, len(
@@ -208,7 +206,7 @@ def majority_vote(att_partition, current_instances, value_subtree, tree):
     tree.append(value_subtree)
 
 
-def tdidt(current_instances, available_attributes, X_train):
+def tdidt(current_instances, available_attributes, X_train):  # done#
     attribute = select_attribute(current_instances, available_attributes)
     available_attributes.remove(attribute)
     tree = ["Attribute", "att" + str(attribute)]
@@ -230,8 +228,9 @@ def tdidt(current_instances, available_attributes, X_train):
             return None
 
         else:
+            available_attributes_shallow = available_attributes.copy()
             subtree = tdidt(
-                att_partition, available_attributes.copy(), X_train)
+                att_partition, available_attributes_shallow, X_train)
             if subtree is None:
                 majority_vote(att_partition, current_instances,
                               value_subtree, tree)
@@ -242,8 +241,7 @@ def tdidt(current_instances, available_attributes, X_train):
 
 
 def tdidt_predict(header, tree, instance):
-    info_type = tree[0]
-    if info_type == "Leaf":
+    if tree[0] == "Leaf":
         return tree[1]
     att_index = header.index(tree[1])
     for i in range(2, len(tree)):
