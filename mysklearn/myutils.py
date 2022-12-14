@@ -2,7 +2,9 @@ import numpy as np
 import csv
 import math
 
-
+####################################################################
+# NAIVE BAYES CLASSIFIER FUNCTIONS #
+####################################################################
 def randomize_in_place(alist, parallel_list=None, ran_seed=None):
     for i in range(len(alist)):
         if ran_seed != None:
@@ -32,11 +34,12 @@ def x_train_helper(X_train, data_array):
                 data_array.append({})
             if j not in data_array[i]:
                 data_array[i][j] = 0
-
+####################################################################
                 
               
-
-
+####################################################################
+# DECISION TREE CLASSIFIER FUNCTIONS #
+####################################################################
 def select_attribute(instances, attributes):
     select_min_entropy = []
     for i in attributes:
@@ -170,3 +173,49 @@ def tdidt_predict(header, tree, instance):
         values = tree[i]
         if values[1] == instance[att_index]:
             return tdidt_predict(header, values[2], instance)
+####################################################################
+
+
+####################################################################
+# K NEAREST NEIGHBOR CLASSIFIER FUNCTIONS #
+####################################################################
+def normalize_data(col):
+    '''normalizes the given column of date with numerical attributes to values [0,1]
+    '''
+    col = [(value-min(col)) / (max(col)-min(col))for value in col]
+    return col
+
+def compute_euclidean_distance(v1, v2):
+    '''compute the euclidean distance of the two values
+
+    Args:
+        v1: a value of one or more dimension.
+        v2: a value of one or more dimension.
+    Returns:
+        the euclidean distance calculated between v1 and v2.
+    '''
+    return np.sqrt(sum([(v1[i] - v2[i]) ** 2 for i in range(len(v1))]))
+
+def get_frequencies(column):
+    '''count the number of time a values occurs in the column
+        Args:
+            column (list): data source to used to count unique value occurences
+        Returns:
+            values (list): parallel list for the unique values
+            counts (list): parallel list for the occurences
+    '''
+    col = sorted(column)
+
+    values = []
+    counts = []
+    for value in col:
+        if value not in values:
+            values.append(value)
+            counts.append(1)
+        else:
+            counts[-1] += 1
+    return values, counts
+####################################################################
+
+
+
