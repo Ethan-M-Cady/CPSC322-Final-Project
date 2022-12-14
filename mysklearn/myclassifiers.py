@@ -1,5 +1,7 @@
 import copy
-from mysklearn import myutils
+from mysklearn import myutils, myevaluation
+import operator
+
 
 class MyKNeighborsClassifier:
     """Represents a simple k nearest neighbors classifier.
@@ -71,6 +73,28 @@ class MyKNeighborsClassifier:
             return_dist.append([row[0] for row in top_k])
 
         return return_index, return_dist
+
+    def predict(self, X_test):
+        """Makes predictions for test instances in X_test.
+
+        Args:
+            X_test(list of list of numeric vals): The list of testing samples
+                The shape of X_test is (n_test_samples, n_features)
+
+        Returns:
+            y_predicted(list of obj): The predicted target y values (parallel to X_test)
+        """
+        y_predicted = []
+        _, neighbor_indexes = self.kneighbors(X_test)
+
+        for instance_neighbor_indexes in neighbor_indexes:
+            neighbor_y = [self.y_train[index]
+                          for index in instance_neighbor_indexes]
+            values, count = myutils.get_frequencies(neighbor_y)
+            y_predicted.append(values[count.index(max(count))])
+        return y_predicted
+
+
 class MyNaiveBayesClassifier:
     def __init__(self):
         self.priors = None
@@ -117,7 +141,8 @@ class MyNaiveBayesClassifier:
                     max_val = value
             y_predicted.append(max_str_value)
         return y_predicted
-    
+
+
 class MyDecisionTreeClassifier:
     """Represents a decision tree classifier.
     Attributes:
@@ -180,3 +205,64 @@ class MyDecisionTreeClassifier:
             y_predicted.append(predicted)
 
         return y_predicted
+
+
+class MyAssociationRuleMiner:
+    """Represents an association rule miner.
+    Attributes:
+        minsup(float): The minimum support value to use when computing supported itemsets
+        minconf(float): The minimum confidence value to use when generating rules
+        X_train(list of list of obj): The list of training instances (samples)
+                The shape of X_train is (n_train_samples, n_features)
+        rules(list of dict): The generated rules
+    Notes:
+        Implements the apriori algorithm
+        Terminology: instance = sample = row and attribute = feature = column
+    """
+
+    # def __init__(self, minsup=0.25, minconf=0.8):
+    def __init__(self, minsup=0.25, minconf=0.8):
+        """Initializer for MyAssociationRuleMiner.
+        Args:
+            minsup(float): The minimum support value to use when computing supported itemsets
+                (0.25 if a value is not provided and the default minsup should be used)
+            minconf(float): The minimum confidence value to use when generating rules
+                (0.8 if a value is not provided and the default minconf should be used)
+        """
+        self.minsup = minsup
+        self.minconf = minconf
+        self.X_train = None
+        self.rules = None
+
+    def fit(self, X_train):
+        """Fits an association rule miner to X_train using the Apriori algorithm.
+        Args:
+            X_train(list of list of obj): The list of training instances (samples)
+                The shape of X_train is (n_train_samples, n_features)
+        Notes:
+            Store the list of generated association rules in the rules attribute
+            If X_train represents a non-market basket analysis dataset, then:
+                Attribute labels should be prepended to attribute values in X_train
+                    before fit() is called (e.g. "att=val", ...).
+                Make sure a rule does not include the same attribute more than once
+        """
+
+        self.X_train = X_train
+        self.rules = myutils.apriori(self.X_train, self.minsup, self.minconf)
+        # might need to be self.X_train instead of just X_train
+
+        pass  # TODO: fix this
+
+    # def print_association_rules(self, X_train):
+    def print_association_rules(self, X_train):
+        self.X_train = X_train
+        self.rules = myutils.apriori(self.X_train, self.minsup, self.minconf)
+        myutils.pretty_print_rules(self.rules, self.X_train)
+
+        """Prints the association rules in the format "IF val AND ... THEN val AND...", one rule on each line.
+        Notes:
+            Each rule's output should include an identifying number, the rule, the rule's support,
+            the rule's confidence, and the rule's lift
+            Consider using the tabulate library to help with this: https://pypi.org/project/tabulate/
+        """
+        pass  # TODO: fix this
