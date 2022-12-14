@@ -1,4 +1,6 @@
 import numpy as np
+import csv
+import math
 
 
 def randomize_in_place(alist, parallel_list=None, ran_seed=None):
@@ -30,3 +32,141 @@ def x_train_helper(X_train, data_array):
                 data_array.append({})
             if j not in data_array[i]:
                 data_array[i][j] = 0
+
+                
+              
+
+
+def select_attribute(instances, attributes):
+    select_min_entropy = []
+    for i in attributes:
+        attribute_types = []
+        # find all attribute instance types
+        for row in instances:
+            if row[i] not in attribute_types:
+                attribute_types.append(row[i])
+        attribute_instances = [[] for _ in attribute_types]
+        # find amount for each attribute
+        for row in instances:
+            index_att = attribute_types.index(row[i])
+            attribute_instances[index_att].append(1)
+
+        class_types = []
+        for values in instances:
+            if values[-1] not in class_types:
+                class_types.append(values[-1])
+        class_type_check = [[[] for _ in class_types] for _ in attribute_types]
+
+        for j, _ in enumerate(instances):
+            class_type_check[attribute_types.index(
+                instances[j][i])][class_types.index(instances[j][-1])].append(1)
+
+        enew = 0
+        for entropy_att, _ in enumerate(class_type_check):
+            entropy = 0
+            for class_entropy in range(len(class_type_check[entropy_att])):
+                val_instance = sum(
+                    class_type_check[entropy_att][class_entropy])
+                einstance = val_instance / \
+                    sum(attribute_instances[entropy_att])
+                if einstance != 0:
+                    entropy += -1 * einstance * math.log(einstance, 2)
+            enew += entropy * \
+                sum(attribute_instances[entropy_att]) / len(instances)
+        select_min_entropy.append(enew)
+
+    min_index = select_min_entropy.index(min(select_min_entropy))
+    return attributes[min_index]
+
+
+def partition_instances(instances, split_attribute, X_train):
+    attribute_domains = {}
+    for l, _ in enumerate(X_train[0]):
+        no_repeats = []
+        for row in X_train:
+            if str(row[l]) not in no_repeats:
+                no_repeats.append(str(row[l]))
+        attribute_domains[l] = no_repeats
+    partitions = {}
+    att_index = split_attribute
+    att_domain = attribute_domains[att_index]
+    for att_value in att_domain:
+        partitions[att_value] = []
+        for instance in instances:
+            if instance[att_index] == att_value:
+                partitions[att_value].append(instance)
+    return partitions
+
+
+def all_same_class(instances):
+    check_same = instances[0][-1]
+    for attribute_vals in instances:
+        if attribute_vals[-1] != check_same:
+            return False
+    return True
+
+
+def majority_vote(att_partition, current_instances, value_subtree, tree):
+    classifiers = []
+    for value_class in att_partition:
+        if value_class[-1] not in classifiers:
+            classifiers.append(value_class[-1])
+
+    find_majority = [[] for _ in classifiers]
+    for value_class in att_partition:
+        find_majority[classifiers.index(value_class[-1])].append(1)
+
+    max = 0
+    for count in find_majority:
+        total_sum = sum(count)
+        if total_sum > max:
+            majority_rule = classifiers[find_majority.index(count)]
+
+    leaf_node = ["Leaf", majority_rule, len(
+        att_partition), len(current_instances)]
+    value_subtree.append(leaf_node)
+    tree.append(value_subtree)
+
+
+def tdidt(current_instances, available_attributes, X_train):
+    attribute = select_attribute(current_instances, available_attributes)
+    available_attributes.remove(attribute)
+    tree = ["Attribute", "att" + str(attribute)]
+    partitions = partition_instances(current_instances, attribute, X_train)
+    for att_value, att_partition in partitions.items():
+        value_subtree = ["Value", att_value]
+
+        if len(att_partition) > 0 and all_same_class(att_partition):
+            leaf_node = ["Leaf", att_partition[0][-1],
+                         len(att_partition), len(current_instances)]
+            value_subtree.append(leaf_node)
+            tree.append(value_subtree)
+
+        elif len(att_partition) > 0 and len(available_attributes) == 0:
+            majority_vote(att_partition, current_instances,
+                          value_subtree, tree)
+
+        elif len(att_partition) == 0:
+            return None
+
+        else:
+            subtree = tdidt(
+                att_partition, available_attributes.copy(), X_train)
+            if subtree is None:
+                majority_vote(att_partition, current_instances,
+                              value_subtree, tree)
+            else:
+                value_subtree.append(subtree)
+                tree.append(value_subtree)
+    return tree
+
+
+def tdidt_predict(header, tree, instance):
+    info_type = tree[0]
+    if info_type == "Leaf":
+        return tree[1]
+    att_index = header.index(tree[1])
+    for i in range(2, len(tree)):
+        values = tree[i]
+        if values[1] == instance[att_index]:
+            return tdidt_predict(header, values[2], instance)
