@@ -1,7 +1,76 @@
 import copy
 from mysklearn import myutils
 
+class MyKNeighborsClassifier:
+    """Represents a simple k nearest neighbors classifier.
 
+    Attributes:
+        n_neighbors(int): number of k neighbors
+        X_train(list of list of numeric vals): The list of training instances (samples).
+                The shape of X_train is (n_train_samples, n_features)
+        y_train(list of obj): The target y values (parallel to X_train).
+            The shape of y_train is n_samples
+
+    Notes:
+        Loosely based on sklearn's KNeighborsClassifier:
+            https://scikit-learn.org/stable/modules/generated/sklearn.neighbors.KNeighborsClassifier.html
+        Terminology: instance = sample = row and attribute = feature = column
+        Assumes data has been properly normalized before use.
+    """
+
+    def __init__(self, n_neighbors=3):
+        """Initializer for MyKNeighborsClassifier.
+
+        Args:
+            n_neighbors(int): number of k neighbors
+        """
+        self.n_neighbors = n_neighbors
+        self.X_train = None
+        self.y_train = None
+
+    def fit(self, X_train, y_train):
+        """Fits a kNN classifier to X_train and y_train.
+
+        Args:
+            X_train(list of list of numeric vals): The list of training instances (samples).
+                The shape of X_train is (n_train_samples, n_features)
+            y_train(list of obj): The target y values (parallel to X_train)
+                The shape of y_train is n_train_samples
+
+        Notes:
+            Since kNN is a lazy learning algorithm, this method just stores X_train and y_train
+        """
+        self.X_train = X_train
+        self.y_train = y_train
+
+    def kneighbors(self, X_test):
+        """Determines the k closes neighbors of each test instance.
+
+        Args:
+            X_test(list of list of numeric vals): The list of testing samples
+                The shape of X_test is (n_test_samples, n_features)
+
+        Returns:
+            distances(list of list of float): 2D list of k nearest neighbor distances
+                for each instance in X_test
+            neighbor_indices(list of list of int): 2D list of k nearest neighbor
+                indices in X_train (parallel to distances)
+        """
+        return_index = []
+        return_dist = []
+        for instance in X_test:
+            row_index_distance = []
+            for index, train_value in enumerate(self.X_train):
+                dist = myutils.compute_euclidean_distance(
+                    train_value, instance)
+                row_index_distance.append((index, dist))
+            row_index_distance.sort(key=operator.itemgetter(-1))
+            top_k = row_index_distance[:self.n_neighbors]
+
+            return_index.append([row[1] for row in top_k])
+            return_dist.append([row[0] for row in top_k])
+
+        return return_index, return_dist
 class MyNaiveBayesClassifier:
     def __init__(self):
         self.priors = None
